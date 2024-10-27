@@ -1,6 +1,7 @@
 package com.jeevan.SpringSecJwt.config;
 
 import com.jeevan.SpringSecJwt.Service.MyUserDetailsService;
+import com.jeevan.SpringSecJwt.SpringSecurityFilters.jwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration // it will tell spring that this is a configuration file
 @EnableWebSecurity // don't go with the default flow, go with the flow which i will mention here
@@ -26,10 +28,13 @@ public class SecurityConfig {
 
     @Autowired
     private UserDetailsService userDetailsService1;
+
+    @Autowired
+    private jwtFilter jwtFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
-        http
+        return http
                 .csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests(request ->request.
                         requestMatchers("save", "loginuser")
@@ -38,9 +43,11 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        return http.build();
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // in this below line we are saying before hit the UPAF (UsernamePasswordAuthenticationFilter)
+                // please hit my jwtFilter
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
     @Bean
     public AuthenticationProvider authenticationProvider(){
