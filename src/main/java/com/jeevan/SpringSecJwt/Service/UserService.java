@@ -19,6 +19,9 @@ public class UserService {
     @Autowired
     private AuthenticationManager authManager;
 
+    @Autowired
+    private JWTService jwtService;
+
     private BCryptPasswordEncoder bcryptPass = new BCryptPasswordEncoder();
 
     public Users saveUser(@RequestBody Users user){
@@ -31,8 +34,8 @@ public class UserService {
         Authentication authentication =
                 authManager.authenticate( new UsernamePasswordAuthenticationToken(user.getUsername() , user.getPassword()));
         if(authentication.isAuthenticated())
-            return "Login SuccessFull its Verified by Spring boot security";
-
+            return jwtService.generateToken(user.getUsername());
+            //return "Login SuccessFull its Verified by Spring boot security";
         return "not Verified";
     }
 }
